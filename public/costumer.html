@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DineLink - Customer Menu</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app" class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-800 text-white p-4 sticky top-0 z-10">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold">DineLink</h1>
+                <div class="flex space-x-4">
+                    <button id="cart-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-shopping-cart mr-2"></i> Cart (<span id="cart-count">0</span>)
+                    </button>
+                    <button id="order-status-btn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-clipboard-check mr-2"></i> Check Order
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto p-6 flex-grow">
+            <!-- Category Filter -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold mb-4">Menu</h2>
+                <div class="flex flex-wrap gap-2">
+                    <button class="category-filter bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" data-category="all">All</button>
+                    <!-- Dynamic categories will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Menu Items -->
+            <div id="menu-items" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic menu items will be inserted here -->
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-blue-800 text-white p-4 text-center">
+            <p>&copy; 2025 DineLink. All rights reserved.</p>
+        </footer>
+
+        <!-- Cart Modal -->
+        <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg w-11/12 max-w-lg mx-auto p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Your Cart</h3>
+                    <button id="close-cart-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="cart-items" class="mb-4">
+                    <!-- Dynamic cart items will be inserted here -->
+                </div>
+                <div class="flex justify-between mb-4">
+                    <span class="font-bold">Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <div class="mb-4">
+                    <label for="table-number" class="block text-gray-700 font-medium mb-2">Table Number</label>
+                    <input type="text" id="table-number" class="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter table number">
+                </div>
+                <div class="flex space-x-2">
+                    <button id="place-order" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex-grow">
+                        Place Order
+                    </button>
+                    <button id="clear-cart" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                        Clear Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status Modal -->
+        <div id="order-status-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg w-11/12 max-w-md mx-auto p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Check Order Status</h3>
+                    <button id="close-order-status-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label for="order-id-input" class="block text-gray-700 font-medium mb-2">Order ID</label>
+                    <input type="text" id="order-id-input" class="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter order ID">
+                </div>
+                <div id="order-status-result" class="mb-4 hidden">
+                    <!-- Dynamic order status will be inserted here -->
+                </div>
+                <div class="flex space-x-2">
+                    <button id="check-order" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex-grow">
+                        Check Status
+                    </button>
+                    <button id="cancel-order-status" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="customer.js"></script>
+</body>
+</html>
