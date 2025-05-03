@@ -9,70 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
 
     // Menu data for recommendations
-    const menuItems = [{
-            id: 1,
-            name: "Mediterranean Salad",
-            description: "Fresh mixed greens with feta, olives, cherry tomatoes, cucumber, and house dressing.",
-            calories: 320,
-            categories: ["low calorie", "vegetarian", "light", "healthy"],
-            price: 14.99
-        },
-        {
-            id: 2,
-            name: "Grilled Chicken Breast",
-            description: "Herb-marinated chicken breast, grilled to perfection with seasonal vegetables.",
-            calories: 450,
-            categories: ["high protein", "healthy", "gluten free"],
-            price: 19.99
-        },
-        {
-            id: 3,
-            name: "Spicy Beef Kebab",
-            description: "Tender pieces of spiced beef with grilled peppers and onions, served with rice pilaf.",
-            calories: 680,
-            categories: ["spicy", "high protein"],
-            price: 24.99
-        },
-        {
-            id: 4,
-            name: "Falafel Bowl",
-            description: "Crispy falafel, hummus, tabbouleh, and tahini sauce with warm pita bread.",
-            calories: 520,
-            categories: ["vegetarian", "vegan"],
-            price: 16.99
-        },
-        {
-            id: 5,
-            name: "Pan-Seared Salmon",
-            description: "Atlantic salmon with lemon butter sauce, served with seasonal vegetables.",
-            calories: 480,
-            categories: ["high protein", "healthy", "gluten free"],
-            price: 26.99
-        },
-        {
-            id: 6,
-            name: "Mushroom Risotto",
-            description: "Creamy arborio rice with wild mushrooms, finished with parmesan.",
-            calories: 620,
-            categories: ["vegetarian"],
-            price: 18.99
-        },
-        {
-            id: 7,
-            name: "Spicy Thai Curry",
-            description: "Red curry with vegetables and your choice of protein, served with jasmine rice.",
-            calories: 580,
-            categories: ["spicy", "gluten free"],
-            price: 22.99
-        },
-        {
-            id: 8,
-            name: "Caesar Salad",
-            description: "Crisp romaine, garlic croutons, parmesan, and house-made Caesar dressing.",
-            calories: 380,
-            categories: ["low calorie", "light"],
-            price: 12.99
-        }
+    const menuItems = [
+        { id: 1, name: "Mediterranean Salad", description: "Fresh mixed greens with feta, olives, cherry tomatoes, cucumber, and house dressing.", calories: 320, categories: ["low calorie", "vegetarian", "light", "healthy"], price: 14.99 },
+        { id: 2, name: "Grilled Chicken Breast", description: "Herb-marinated chicken breast, grilled to perfection with seasonal vegetables.", calories: 450, categories: ["high protein", "healthy", "gluten free"], price: 19.99 },
+        { id: 3, name: "Spicy Beef Kebab", description: "Tender pieces of spiced beef with grilled peppers and onions, served with rice pilaf.", calories: 680, categories: ["spicy", "high protein"], price: 24.99 },
+        { id: 4, name: "Falafel Bowl", description: "Crispy falafel, hummus, tabbouleh, and tahini sauce with warm pita bread.", calories: 520, categories: ["vegetarian", "vegan"], price: 16.99 },
+        { id: 5, name: "Pan-Seared Salmon", description: "Atlantic salmon with lemon butter sauce, served with seasonal vegetables.", calories: 480, categories: ["high protein", "healthy", "gluten free"], price: 26.99 },
+        { id: 6, name: "Mushroom Risotto", description: "Creamy arborio rice with wild mushrooms, finished with parmesan.", calories: 620, categories: ["vegetarian"], price: 18.99 },
+        { id: 7, name: "Spicy Thai Curry", description: "Red curry with vegetables and your choice of protein, served with jasmine rice.", calories: 580, categories: ["spicy", "gluten free"], price: 22.99 },
+        { id: 8, name: "Caesar Salad", description: "Crisp romaine, garlic croutons, parmesan, and house-made Caesar dressing.", calories: 380, categories: ["low calorie", "light"], price: 12.99 }
     ];
 
     // Initialize events
@@ -121,15 +66,17 @@ document.addEventListener('DOMContentLoaded', () => {
         showTypingIndicator();
 
         // Process message and respond with delay
-        setTimeout(() => {
-            
+        setTimeout(async () => {
+            let response = generateResponse(message);
 
-            // Generate response
-            const response = generateResponse(message);
+            if (response === "I'm sorry, I didn't understand that.") {
+                // If no predefined response, get AI response from serverless function
+                response = await getAIResponse(message);
+            }
 
             // Remove typing indicator
             removeTypingIndicator();
-            
+
             // Append bot message to chat
             appendBotMessage(response);
 
@@ -144,6 +91,24 @@ document.addEventListener('DOMContentLoaded', () => {
             saveChatHistory();
 
         }, 1200); // Simulate typing delay
+    }
+
+    async function getAIResponse(message) {
+        try {
+            const response = await fetch("/.netlify/functions/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ message: message }),
+            });
+
+            const data = await response.json();
+            return data.reply || "Sorry, I didn’t understand that.";
+        } catch (error) {
+            console.error("Error:", error);
+            return "Oops! Something went wrong.";
+        }
     }
 
     function appendUserMessage(message) {
@@ -205,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typingWrapper) {
             chatContainer.removeChild(typingWrapper);
         }
-
     }
 
     function scrollToBottom() {
@@ -268,108 +232,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Default response if no pattern matches
-        return "I'd be happy to recommend something from our menu! Would you like suggestions for vegetarian dishes, high protein options, spicy meals, or perhaps something under 500 calories?";
+        return "I'm sorry, I didn't understand that.";
     }
 
     function generateCalorieResponse(calorieLimit) {
         const filteredItems = menuItems.filter(item => item.calories < calorieLimit);
 
-        if (filteredItems.length === 0) {
-            return `I'm sorry, we don't currently have menu items under ${calorieLimit} calories. Our lowest calorie option is the Mediterranean Salad at 320 calories. Would you like to know more about our lighter options?`;
+        if (filteredItems.length > 0) {
+            return `Here are some low-calorie options under ${calorieLimit} calories:\n` +
+                filteredItems.map(item => `${item.name} - ${item.calories} calories - $${item.price.toFixed(2)}`).join('\n');
+        } else {
+            return `Sorry, we don't have any dishes under ${calorieLimit} calories. Would you like to see other options?`;
         }
-
-        // Sort by calories (ascending)
-        filteredItems.sort((a, b) => a.calories - b.calories);
-
-        // Take up to 3 items
-        const suggestions = filteredItems.slice(0, 3);
-
-        let response = `Here are some dishes under ${calorieLimit} calories:<br><br>`;
-
-        suggestions.forEach(item => {
-            response += `<strong>${item.name}</strong> (${item.calories} calories): ${item.description}<br><br>`;
-        });
-
-        response += `Would you like more details about any of these dishes?`;
-
-        return response;
     }
 
     function generateCategoryResponse(category) {
         const filteredItems = menuItems.filter(item => item.categories.includes(category));
 
-        if (filteredItems.length === 0) {
-            return `I'm sorry, we don't currently have ${category} options on our menu. Would you like suggestions for something else?`;
-        }
-
-        // Randomize the order
-        filteredItems.sort(() => Math.random() - 0.5);
-
-        // Take up to 3 items
-        const suggestions = filteredItems.slice(0, 3);
-
-        let response = `Here are some ${category} options you might enjoy:<br><br>`;
-
-        suggestions.forEach(item => {
-            response += `<strong>${item.name}</strong> (${item.calories} calories): ${item.description}<br><br>`;
-        });
-
-        response += `Would you like to know more about any of these dishes?`;
-
-        return response;
-    }
-
-    function generatePriceResponse(priceLevel) {
-        let filteredItems;
-
-        if (priceLevel === 'low') {
-            filteredItems = menuItems.filter(item => item.price < 18);
-        } else if (priceLevel === 'high') {
-            filteredItems = menuItems.filter(item => item.price >= 22);
+        if (filteredItems.length > 0) {
+            return `Here are some ${category} options:\n` +
+                filteredItems.map(item => `${item.name} - ${item.description} - $${item.price.toFixed(2)}`).join('\n');
         } else {
-            filteredItems = menuItems.filter(item => item.price >= 18 && item.price < 22);
+            return `Sorry, we don't have any ${category} dishes. Would you like to explore other categories?`;
         }
-
-        filteredItems.sort((a, b) => priceLevel === 'low' ? a.price - b.price : b.price - a.price);
-
-        // Take up to 3 items
-        const suggestions = filteredItems.slice(0, 3);
-
-        let response = priceLevel === 'low' ?
-            "Here are some of our more affordable options:<br><br>" :
-            "Here are some of our premium selections:<br><br>";
-
-        suggestions.forEach(item => {
-            response += `<strong>${item.name}</strong> ($${item.price.toFixed(2)}): ${item.description}<br><br>`;
-        });
-
-        response += `Would you like more information on any of these dishes?`;
-
-        return response;
     }
 
-    function containsAny(str, keywords) {
-        return keywords.some(keyword => str.includes(keyword));
+    function generatePriceResponse(priceRange) {
+        const filteredItems = menuItems.filter(item => priceRange === 'low' ? item.price <= 20 : item.price > 20);
+
+        if (filteredItems.length > 0) {
+            return `Here are some ${priceRange} priced options:\n` +
+                filteredItems.map(item => `${item.name} - $${item.price.toFixed(2)}`).join('\n');
+        } else {
+            return `Sorry, we don't have any ${priceRange} priced dishes. Would you like to see other options?`;
+        }
+    }
+
+    function containsAny(message, words) {
+        return words.some(word => message.includes(word));
     }
 
     function loadChatHistory() {
-        const savedHistory = localStorage.getItem('wardChatHistory');
-        if (savedHistory) {
-            try {
-                chatHistory = JSON.parse(savedHistory);
-
-                // Keep only the last 50 messages to prevent localStorage from getting too large
-                if (chatHistory.length > 50) {
-                    chatHistory = chatHistory.slice(chatHistory.length - 50);
-                }
-            } catch (error) {
-                console.error('Failed to parse chat history:', error);
-                chatHistory = [];
-            }
+        const storedHistory = localStorage.getItem('chatHistory');
+        if (storedHistory) {
+            chatHistory = JSON.parse(storedHistory);
         }
     }
 
     function saveChatHistory() {
-        localStorage.setItem('wardChatHistory', JSON.stringify(chatHistory));
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
     }
 });
