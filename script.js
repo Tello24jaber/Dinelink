@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     // Menu data
     const menuItems = [

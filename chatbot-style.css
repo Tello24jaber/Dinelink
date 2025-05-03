@@ -1,5 +1,4 @@
-style.css
-/* Global Styles */
+
 :root {
     --burgundy: #800020;
     --burgundy-dark: #600018;
@@ -226,9 +225,9 @@ main {
 /* Back to Menu Link */
 .back-to-menu {
     position: fixed;
-    top: 5.5rem;
+    top: 010.5rem;
     left: 1rem;
-    z-index: 5;
+    z-index: 90;
 }
 
 .menu-link {
