@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ward Restaurant - Menu</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>Ward Restaurant</h1>
+            <p class="tagline">Elegant Dining Experience</p>
+        </div>
+    </header>
+
+    <div class="table-input-section">
+        <form id="tableNumberForm">
+            <div class="input-group">
+                <label for="tableNumber">Enter Table Number</label>
+                <input type="number" id="tableNumber" min="1" max="50" required>
+                <button type="submit" class="btn-primary">Set Table</button>
+            </div>
+            <p id="tableDisplay" class="table-confirmation hidden">Your table: <span id="tableNumberDisplay"></span></p>
+        </form>
+    </div>
+
+    <main>
+        <section class="menu-section">
+            <h2>Our Menu</h2>
+            <div class="menu-container" id="menuContainer">
+                <!-- Menu items will be dynamically loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <div id="cartButton" class="cart-button">
+        <span class="cart-icon"><i class="fas fa-shopping-cart"></i></span>
+        <span id="cartCount" class="cart-count">0</span>
+    </div>
+
+    <div id="cartModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Your Order</h3>
+                <span id="closeCart" class="close-btn">&times;</span>
+            </div>
+            <div id="cartItems" class="cart-items">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div class="cart-summary">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">$0.00</span>
+                </div>
+                <div class="cart-actions">
+                    <button id="clearCart" class="btn-secondary">Clear Order</button>
+                    <button id="placeOrder" class="btn-primary">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="backdrop" class="backdrop hidden"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
