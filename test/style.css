@@ -317,7 +317,36 @@ header {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 20;
 }
+/* Order Notes Styles */
+.order-notes {
+    padding: 1rem;
+    border-top: 1px solid var(--medium-gray);
+    border-bottom: 1px solid var(--medium-gray);
+}
 
+.order-notes label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--burgundy);
+    font-weight: 500;
+}
+
+.order-notes textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--medium-gray);
+    border-radius: 8px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.order-notes textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
 .modal {
     position: fixed;
     top: 50%;

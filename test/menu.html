@@ -14,9 +14,15 @@
     <header>
         <div class="logo-container">
             <h1>Ward Restaurant</h1>
+            
             <p class="tagline">Elegant Dining Experience</p>
         </div>
+        
+          
     </header>
+    <a href="chatbot.html" style="background: orange; color: white; padding: 8px 14px; border-radius: 6px; align-items: flex-start; text-decoration: none; font-weight: bold;">
+        🤖 Chat Help
+      </a>
 
     <div class="table-input-section">
         <form id="tableNumberForm">
@@ -52,6 +58,14 @@
             <div id="cartItems" class="cart-items">
                 <!-- Cart items will be loaded here -->
             </div>
+            <div class="order-notes">
+                <label for="orderNotes">Special Instructions:</label>
+                <textarea 
+                    id="orderNotes" 
+                    placeholder="Add any special requests or dietary restrictions..."
+                    rows="3"
+                ></textarea>
+            </div>
             <div class="cart-summary">
                 <div class="cart-total">
                     <span>Total:</span>
@@ -64,6 +78,14 @@
             </div>
         </div>
     </div>
+<!-- Table Number Alert Modal -->
+<div id="tableNumberAlertModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-btn" id="closeTableAlertModal">&times;</span>
+        <h2>Please enter your table number</h2>
+        <p>You need to enter your table number before adding anything to the cart.</p>
+    </div>
+</div>
 
     <div id="backdrop" class="backdrop hidden"></div>
 
