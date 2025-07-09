@@ -66,10 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearCart = document.getElementById('clearCart');
     const placeOrder = document.getElementById('placeOrder');
     const backdrop = document.getElementById('backdrop');
+    const orderNotes = document.getElementById('orderNotes');
 
     // State
     let tableNumber = null;
     let cart = [];
+
+    // SheetDB API endpoint
+    const SHEETDB_ENDPOINT = 'https://sheetdb.io/api/v1/kbippewxvqp3x';
 
     // Initialize
     init();
@@ -79,7 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMenu();
         renderCartCount();
         attachEventListeners();
-        disableOrdering(); // Added to initially disable ordering
+        disableOrdering();
+    }
+
+    function generateOrderID() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `ORD-${year}${month}${day}-${hours}${minutes}${seconds}`;
     }
 
     function attachEventListeners() {
@@ -110,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.add-to-cart').forEach(btn => {
             btn.disabled = false;
         });
-        cartButton.style.display = 'flex';
+        if (cart.length > 0) {
+            cartButton.style.display = 'flex';
+        }
     }
 
     function disableOrdering() {
@@ -212,7 +229,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCartCount() {
         const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
         cartCount.textContent = totalItems;
-        cartButton.style.display = totalItems > 0 ? 'flex' : 'none';
+        
+        if (totalItems > 0 && tableNumber) {
+            cartButton.style.display = 'flex';
+        } else {
+            cartButton.style.display = 'none';
+        }
     }
 
     function openCartModal() {
@@ -278,80 +300,81 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tableNumber) return;
         if (confirm('Are you sure you want to clear your order?')) {
             cart = [];
-            document.getElementById('orderNotes').value = ''; // Clear notes
+            orderNotes.value = '';
             renderCartItems();
             renderCartCount();
             closeCartModal();
         }
     }
-    
-const SHEETDB_ENDPOINT = 'https://sheetdb.io/api/v1/1ud2pjrkgw2oq';
 
-
-async function handlePlaceOrder() {
-    if (!tableNumber) {
-        alert('Please enter your table number first.');
-        return;
-    }
-    
-    if (cart.length === 0) {
-        alert('Your cart is empty. Please add items to your order.');
-        return;
-    }
-    
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const notes = document.getElementById('orderNotes').value;
-    
-    try {
-        // Format items for spreadsheet
+    async function handlePlaceOrder() {
+        if (!tableNumber) {
+            alert('Please enter your table number first.');
+            return;
+        }
+        
+        if (cart.length === 0) {
+            alert('Your cart is empty. Please add items to your order.');
+            return;
+        }
+        
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const notes = orderNotes.value.trim() || "None";
+        const orderId = generateOrderID();
+        
+        // Format items as "Item (x2), Item2 (x1), ..."
         const itemsString = cart.map(item => 
             `${item.name} (x${item.quantity})`
         ).join(', ');
 
-        // Create order data object
         const orderData = {
             data: [{
-                "table number": tableNumber,
+                "order_id": orderId,
+                "timestamp": new Date().toISOString(),
+                "table_number": tableNumber.toString(),
                 "items": itemsString,
-                "notes": notes || "None",
+                "notes": notes,
                 "total": total.toFixed(2)
             }]
         };
 
-        // Send to Google Sheets via SheetDB
-        const response = await fetch(SHEETDB_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(orderData)
-        });
+        try {
+            const response = await fetch(SHEETDB_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
 
-        if (!response.ok) {
-            throw new Error('Failed to save order to spreadsheet');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Order saved successfully:', result);
+
+            // Show success confirmation
+            const orderSummary = cart.map(item => 
+                `${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}`
+            ).join('\n');
+            
+            alert(`Order placed successfully for Table ${tableNumber}!\n\nOrder ID: ${orderId}\n\nSummary:\n${orderSummary}\n\nTotal: $${total.toFixed(2)}\n\nYour order has been sent to the kitchen.`);
+
+            // Reset everything
+            cart = [];
+            orderNotes.value = '';
+            tableNumber = null;
+            tableNumberInput.value = '';
+            tableDisplay.classList.add('hidden');
+            renderCartItems();
+            renderCartCount();
+            closeCartModal();
+            disableOrdering();
+
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert('There was an error placing your order. Please try again or contact staff for assistance.');
         }
-
-        const result = await response.json();
-        console.log('Order saved:', result);
-
-        // Show confirmation
-        const orderSummary = cart.map(item => 
-            `${item.quantity}x ${item.name} - $${(item.price * item.quantity).toFixed(2)}`
-        ).join('\n');
-        
-        alert(`Order placed for Table ${tableNumber}!\n\nSummary:\n${orderSummary}\n\nTotal: $${total.toFixed(2)}\n\nYour order has been sent to the kitchen.`);
-
-    } catch (error) {
-        console.error('Error saving order:', error);
-        alert('Order placed successfully, but receipt was not saved. Please inform staff.');
-    } finally {
-        // Clear cart and reset UI
-        cart = [];
-        document.getElementById('orderNotes').value = '';
-        renderCartItems();
-        renderCartCount();
-        closeCartModal();
-        disableOrdering();
     }
-}
 });
