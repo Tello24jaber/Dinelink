@@ -1,55 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Menu data
-    const menuItems = [
-        {
-            id: 1,
-            name: "Pan-Seared Salmon",
-            description: "Atlantic salmon with lemon butter sauce, served with seasonal vegetables and wild rice.",
-            calories: 520,
-            price: 24.99,
-            image: "https://static01.nyt.com/images/2024/02/13/multimedia/LH-pan-seared-salmon-lwzt/LH-pan-seared-salmon-lwzt-mediumSquareAt3X.jpg"
-        },
-        {
-            id: 2,
-            name: "Filet Mignon",
-            description: "8oz premium beef tenderloin, char-grilled to perfection with truffle mashed potatoes.",
-            calories: 680,
-            price: 34.99,
-            image: "https://hips.hearstapps.com/hmg-prod/images/filet-mignon-index-66c4b19cc80ba.jpeg?crop=1.00xw:1.00xh;0,0&resize=1200:*"
-        },
-        {
-            id: 3,
-            name: "Mushroom Risotto",
-            description: "Creamy arborio rice slowly cooked with wild mushrooms, finished with parmesan and herbs.",
-            calories: 450,
-            price: 18.99,
-            image: "https://cdn.loveandlemons.com/wp-content/uploads/opengraph/2023/01/mushroom-risotto-recipe.jpg"
-        },
-        {
-            id: 4,
-            name: "Mediterranean Salad",
-            description: "Fresh mixed greens with feta, olives, cherry tomatoes, cucumber, and house dressing.",
-            calories: 320,
-            price: 14.99,
-            image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-Ilu08tcq9yIlM2ZfkTpO1u2Xwh1i6IJ5XQ&s"
-        },
-        {
-            id: 5,
-            name: "Roasted Chicken",
-            description: "Free-range half chicken with rosemary and garlic, served with roasted potatoes.",
-            calories: 590,
-            price: 22.99,
-            image: "https://assets.epicurious.com/photos/62f16ed5fe4be95d5a460eed/1:1/w_4318,h_4318,c_limit/RoastChicken_RECIPE_080420_37993.jpg"
-        },
-        {
-            id: 6,
-            name: "Seafood Pasta",
-            description: "Linguine with shrimp, scallops, and mussels in a light white wine and tomato sauce.",
-            calories: 620,
-            price: 26.99,
-            image: "https://simply-delicious-food.com/wp-content/uploads/2021/07/Creamy-seafood-pasta-5.jpg"
-        }
-    ];
+    // Menu data will be fetched from SheetDB
+    let menuItems = [];
+
+    // SheetDB API endpoint for menu items
+    const MENU_SHEETDB_ENDPOINT = 'https://sheetdb.io/api/v1/p20esf2ey9efp';
 
     // DOM Elements
     const tableNumberForm = document.getElementById('tableNumberForm');
@@ -72,18 +26,45 @@ document.addEventListener('DOMContentLoaded', () => {
     let tableNumber = null;
     let cart = [];
 
-    // SheetDB API endpoint
+    // SheetDB API endpoint for orders
     const SHEETDB_ENDPOINT = 'https://sheetdb.io/api/v1/kbippewxvqp3x';
 
     // Initialize
     init();
 
     // Functions
-    function init() {
+    async function init() {
+        await fetchMenuItems();
         renderMenu();
         renderCartCount();
         attachEventListeners();
         disableOrdering();
+    }
+
+    async function fetchMenuItems() {
+        try {
+            const response = await fetch(MENU_SHEETDB_ENDPOINT);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            // Filter only available items and convert data types
+            menuItems = data
+                .filter(item => item.available === "TRUE")
+                .map(item => ({
+                    id: parseInt(item.id),
+                    name: item.name,
+                    description: item.description,
+                    price: parseFloat(item.price),
+                    image: item.image
+                }));
+                
+            console.log('Menu items loaded:', menuItems);
+        } catch (error) {
+            console.error('Error fetching menu items:', error);
+            menuContainer.innerHTML = '<p class="error-message">Unable to load menu. Please refresh the page or contact staff.</p>';
+        }
     }
 
     function generateOrderID() {
@@ -139,6 +120,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMenu() {
         menuContainer.innerHTML = '';
+        
+        if (menuItems.length === 0) {
+            menuContainer.innerHTML = '<p class="no-items-message">No menu items available at the moment.</p>';
+            return;
+        }
+        
         menuItems.forEach(item => {
             const menuItemElement = createMenuItemElement(item);
             menuContainer.appendChild(menuItemElement);
@@ -152,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         menuItem.innerHTML = `
             <div class="menu-item-image">
-                <img src="${item.image}" alt="${item.name}">
+                <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Available'">
             </div>
             <div class="menu-item-info">
                 <div class="menu-item-header">
@@ -160,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="menu-item-price">$${item.price.toFixed(2)}</span>
                 </div>
                 <p class="menu-item-desc">${item.description}</p>
-                <p class="menu-item-calories">${item.calories} cal</p>
                 <div class="menu-item-add">
                     <div class="quantity-control">
                         <button class="quantity-btn decrease" data-id="${item.id}">-</button>
